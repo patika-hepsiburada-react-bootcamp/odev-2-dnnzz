@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { generateRandomWord } from "../words";
 import "./Hangman.scss";
 import step0 from "../images/0.jpg";
@@ -16,6 +16,27 @@ export const Hangman = () => {
   const [answer, setAnswer] = useState(generateRandomWord());
   const [gameStatus, setGameStatus] = useState("playing");
 
+  // Handle keyboard events with keycodes
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const handleKeyPress = (event) => {
+    if (gameStatus === "YOU WON" || gameStatus === "YOU LOST") {
+      if (event.keyCode === 8 || event.keyCode === 13 || event.keyCode === 32) {
+        handleReset();
+      }
+    } else if (event.keyCode >= 65 && event.keyCode <= 222) {
+      handleGuesses(event.key);
+    } else if (event.keyCode === 8 || event.keyCode === 13 || event.keyCode === 32) {
+      handleReset();
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyPress);
+    return () => {
+      window.removeEventListener("keydown", handleKeyPress);
+    };
+  }, [handleKeyPress]);
+
   // tracks game status according to mistakes..
   useEffect(() => {
     if (mistakes >= maxMistakes) {
@@ -31,6 +52,7 @@ export const Hangman = () => {
   // if guess is wrong it add mistakes + 1
   const handleGuesses = (key) => {
     let letter = key;
+    console.log(letter);
     let tmpGuess = guesses.add(key);
     setGuesses(new Set(tmpGuess));
     setMistakes(mistakes + (answer.includes(letter) ? 0 : 1));
